@@ -1,4 +1,10 @@
 <main style="width: 400px; margin: 0 auto">
+    <p>
+        <span *ifViewportSize="'small'"> small </span>
+        <span *ifViewportSize="'medium'"> medium </span>
+        <span *ifViewportSize="'large'"> large </span>
+    </p>
+    <br>
     <button (click)="removeTab()">
         Remove tab
     </button>
