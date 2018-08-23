@@ -1,4 +1,4 @@
-import { AfterContentInit, Component, ContentChildren, OnDestroy, OnInit, QueryList } from '@angular/core';
+import { AfterContentInit, Component, ContentChildren, OnDestroy, QueryList } from '@angular/core';
 import { TabItemComponent } from './tab-item/tab-item.component';
 
 @Component({
@@ -15,7 +15,6 @@ export class TabsComponent implements OnDestroy, AfterContentInit {
     this.init();
     this.tabs.first.isActive = true;
     this.tabs.changes.subscribe(() => {
-      console.log('HAS_CHANHCES');
       this.init();
     });
   }
@@ -36,7 +35,6 @@ export class TabsComponent implements OnDestroy, AfterContentInit {
       }
     });
     const subscriberRemoved = tab.removed.subscribe(() => {
-      console.log('REMOVED');
       if (this.currentTabIndex === index) {
         this.tabs.first.isActive = true;
         this.currentTabIndex = 0;

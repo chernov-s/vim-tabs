@@ -1,6 +1,7 @@
 import { Directive, Input, OnDestroy, OnInit, TemplateRef, ViewContainerRef } from '@angular/core';
 import { ResizeService, ViewPortType } from './resize.service';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Directive({
   selector: '[ifViewportSize]'
@@ -8,31 +9,39 @@ import { Subscription } from 'rxjs';
 export class IfViewPortSizeDirective  implements OnInit, OnDestroy {
 
   @Input() ifViewportSize: ViewPortType;
-  changeViewPortSubscriber: Subscription;
+
+  directiveDestroyed$: Subject<boolean> = new Subject();
+  private isRendered = false;
 
   constructor(private resizeService: ResizeService,
               private templateRef: TemplateRef<any>,
-              private viewContainer: ViewContainerRef
-  ) {
-    this.changeViewPortSubscriber = resizeService.onResize$.subscribe(
-      (viewPortType: ViewPortType) => this.renderContent(this.ifViewportSize === viewPortType)
-    );
+              private viewContainer: ViewContainerRef) {
   }
 
   ngOnInit() {
-    this.renderContent(this.resizeService.resizeSubject.getValue() === this.ifViewportSize);
+    this.resizeService.resizeSubject$.pipe(
+      takeUntil(this.directiveDestroyed$)
+    ).subscribe(
+      (viewPortType: ViewPortType) => {
+        this.renderContent(viewPortType);
+      }
+    );
   }
 
   ngOnDestroy() {
-    this.changeViewPortSubscriber.unsubscribe();
+    this.directiveDestroyed$.next(true);
+    this.directiveDestroyed$.complete();
   }
 
-  renderContent(isShow: boolean) {
-    if (isShow) {
-      this.viewContainer.createEmbeddedView(this.templateRef);
-    } else {
+  renderContent(viewPortType: ViewPortType) {
+    if (this.ifViewportSize !== viewPortType) {
       this.viewContainer.clear();
+      this.isRendered = false;
+      return;
     }
-
+    if (!this.isRendered) {
+      this.isRendered = true;
+      this.viewContainer.createEmbeddedView(this.templateRef);
+    }
   }
 }
